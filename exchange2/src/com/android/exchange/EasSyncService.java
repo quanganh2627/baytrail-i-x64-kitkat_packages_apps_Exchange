@@ -141,6 +141,9 @@ public class EasSyncService extends AbstractSyncService {
     // Maximum number of times we'll allow a sync to "loop" with MoreAvailable true before
     // forcing it to stop.  This number has been determined empirically.
     static private final int MAX_LOOPING_COUNT = 100;
+    // Exchange server may send empty MoreAvailable response. Client could ignore this request
+    // for power saving purpose. This number is max empty response number.
+    static private final int MAX_EMPTY_LOOPING_COUNT = 3;
     // Reasonable default
     public String mProtocolVersion = Eas.DEFAULT_PROTOCOL_VERSION;
     public Double mProtocolVersionDouble;
@@ -1599,6 +1602,9 @@ public class EasSyncService extends AbstractSyncService {
 
         boolean moreAvailable = true;
         int loopingCount = 0;
+        int lastChangeCount = 0;
+        int emptyLoopingCount = 0;
+
         while (!mStop && (moreAvailable || hasPendingRequests())) {
             // If we have no connectivity, just exit cleanly. ExchangeService will start us up again
             // when connectivity has returned
@@ -1685,6 +1691,8 @@ public class EasSyncService extends AbstractSyncService {
             }
 
             s.end().end().end().done();
+
+            lastChangeCount = mChangeCount;
             EasResponse resp = sendHttpClientPost("Sync", new ByteArrayEntity(s.toByteArray()),
                     timeout);
             try {
@@ -1725,6 +1733,16 @@ public class EasSyncService extends AbstractSyncService {
                             } else {
                                 mUpsyncFailed = false;
                             }
+                            if ( lastChangeCount != mChangeCount) {
+                                emptyLoopingCount = 0;
+                                lastChangeCount = mChangeCount;
+                            } else if (moreAvailable) {
+                                emptyLoopingCount ++;
+                                if ( emptyLoopingCount > MAX_EMPTY_LOOPING_COUNT) {
+                                    moreAvailable = false;
+                                }
+                            }
+
                         } catch (EmptyStreamException e) {
                             userLog("Empty stream detected in GZIP response");
                             emptyStream = true;
