@@ -20,4 +20,10 @@ import android.app.Application;
 
 public class Exchange extends Application {
     // TODO Investigate whether this class is needed
+     public static String mDeviceType;
+        @Override
+        public void onCreate() {
+            super.onCreate();
+            mDeviceType = this.getString(R.string.device_type);
+        }
 }
