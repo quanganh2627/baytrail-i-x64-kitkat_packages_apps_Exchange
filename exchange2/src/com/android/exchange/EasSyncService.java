@@ -1824,6 +1824,7 @@ public class EasSyncService extends AbstractSyncService {
             setConnectionParameters(ha);
         } catch (CertificateException e) {
             userLog("Couldn't retrieve certificate for connection");
+            ExchangeService.sCertificateError = true;
             try {
                 ExchangeService.callback().syncMailboxStatus(mMailboxId,
                         EmailServiceStatus.CLIENT_CERTIFICATE_ERROR, 0);
@@ -1833,6 +1834,7 @@ public class EasSyncService extends AbstractSyncService {
             return false;
         }
 
+        ExchangeService.sCertificateError = false;
         // Set up our protocol version from the Account
         mProtocolVersion = mAccount.mProtocolVersion;
         // If it hasn't been set up, start with default version
