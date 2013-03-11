@@ -134,7 +134,7 @@ public class EasSyncService extends AbstractSyncService {
     // The EAS protocol Provision status meaning "we partially implement the policies"
     static private final String PROVISION_STATUS_PARTIAL = "2";
 
-    static /*package*/ final String DEVICE_TYPE = "Android";
+    static /*package*/ final String DEVICE_TYPE = Exchange.mDeviceType;
     static final String USER_AGENT = DEVICE_TYPE + '/' + Build.VERSION.RELEASE + '-' +
         Eas.CLIENT_VERSION;
 
@@ -1806,6 +1806,7 @@ public class EasSyncService extends AbstractSyncService {
             setConnectionParameters(ha);
         } catch (CertificateException e) {
             userLog("Couldn't retrieve certificate for connection");
+            ExchangeService.sCertificateError = true;
             try {
                 ExchangeService.callback().syncMailboxStatus(mMailboxId,
                         EmailServiceStatus.CLIENT_CERTIFICATE_ERROR, 0);
@@ -1815,6 +1816,7 @@ public class EasSyncService extends AbstractSyncService {
             return false;
         }
 
+        ExchangeService.sCertificateError = false;
         // Set up our protocol version from the Account
         mProtocolVersion = mAccount.mProtocolVersion;
         // If it hasn't been set up, start with default version
