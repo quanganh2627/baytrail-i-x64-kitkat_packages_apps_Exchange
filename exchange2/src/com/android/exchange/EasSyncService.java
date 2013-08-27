@@ -134,16 +134,13 @@ public class EasSyncService extends AbstractSyncService {
     // The EAS protocol Provision status meaning "we partially implement the policies"
     static private final String PROVISION_STATUS_PARTIAL = "2";
 
-    static /*package*/ final String DEVICE_TYPE = Exchange.mDeviceType;
+    static /*package*/ final String DEVICE_TYPE = "Android";
     static final String USER_AGENT = DEVICE_TYPE + '/' + Build.VERSION.RELEASE + '-' +
         Eas.CLIENT_VERSION;
 
     // Maximum number of times we'll allow a sync to "loop" with MoreAvailable true before
     // forcing it to stop.  This number has been determined empirically.
     static private final int MAX_LOOPING_COUNT = 100;
-    // Exchange server may send empty MoreAvailable response. Client could ignore this request
-    // for power saving purpose. This number is max empty response number.
-    static private final int MAX_EMPTY_LOOPING_COUNT = 3;
     // Reasonable default
     public String mProtocolVersion = Eas.DEFAULT_PROTOCOL_VERSION;
     public Double mProtocolVersionDouble;
@@ -1602,9 +1599,6 @@ public class EasSyncService extends AbstractSyncService {
 
         boolean moreAvailable = true;
         int loopingCount = 0;
-        int lastChangeCount = 0;
-        int emptyLoopingCount = 0;
-
         while (!mStop && (moreAvailable || hasPendingRequests())) {
             // If we have no connectivity, just exit cleanly. ExchangeService will start us up again
             // when connectivity has returned
@@ -1691,8 +1685,6 @@ public class EasSyncService extends AbstractSyncService {
             }
 
             s.end().end().end().done();
-
-            lastChangeCount = mChangeCount;
             EasResponse resp = sendHttpClientPost("Sync", new ByteArrayEntity(s.toByteArray()),
                     timeout);
             try {
@@ -1733,16 +1725,6 @@ public class EasSyncService extends AbstractSyncService {
                             } else {
                                 mUpsyncFailed = false;
                             }
-                            if ( lastChangeCount != mChangeCount) {
-                                emptyLoopingCount = 0;
-                                lastChangeCount = mChangeCount;
-                            } else if (moreAvailable) {
-                                emptyLoopingCount ++;
-                                if ( emptyLoopingCount > MAX_EMPTY_LOOPING_COUNT) {
-                                    moreAvailable = false;
-                                }
-                            }
-
                         } catch (EmptyStreamException e) {
                             userLog("Empty stream detected in GZIP response");
                             emptyStream = true;
@@ -1824,7 +1806,6 @@ public class EasSyncService extends AbstractSyncService {
             setConnectionParameters(ha);
         } catch (CertificateException e) {
             userLog("Couldn't retrieve certificate for connection");
-            ExchangeService.sCertificateError = true;
             try {
                 ExchangeService.callback().syncMailboxStatus(mMailboxId,
                         EmailServiceStatus.CLIENT_CERTIFICATE_ERROR, 0);
@@ -1834,7 +1815,6 @@ public class EasSyncService extends AbstractSyncService {
             return false;
         }
 
-        ExchangeService.sCertificateError = false;
         // Set up our protocol version from the Account
         mProtocolVersion = mAccount.mProtocolVersion;
         // If it hasn't been set up, start with default version

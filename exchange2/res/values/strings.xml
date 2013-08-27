@@ -195,5 +195,4 @@
     <string name="account_setup_options_mail_window_1month">One month</string>
     <!-- A sync window length setting (i.e. load messages this far back) [CHAR LIMIT=25]  -->
     <string name="account_setup_options_mail_window_all">All</string>
-    <string name="device_type">Android</string>
 </resources>
