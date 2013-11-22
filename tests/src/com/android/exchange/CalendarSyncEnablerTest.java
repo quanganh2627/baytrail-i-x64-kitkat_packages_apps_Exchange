@@ -29,17 +29,17 @@ import android.provider.CalendarContract;
 import android.test.MoreAsserts;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.text.TextUtils;
-import android.util.Log;
 
-import com.android.emailcommon.AccountManagerTypes;
 import com.android.emailcommon.Logging;
 import com.android.exchange.utility.ExchangeTestCase;
+import com.android.mail.utils.LogUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+
 @MediumTest
 public class CalendarSyncEnablerTest extends ExchangeTestCase {
 
@@ -49,7 +49,7 @@ public class CalendarSyncEnablerTest extends ExchangeTestCase {
     private HashMap<Account, Boolean> origCalendarSyncStates = new HashMap<Account, Boolean>();
 
     // To make the rest of the code shorter thus more readable...
-    private static final String EAT = AccountManagerTypes.TYPE_EXCHANGE;
+    private static final String EAT = "com.android.exchange";
 
     @Override
     public void setUp() throws Exception {
@@ -179,7 +179,7 @@ public class CalendarSyncEnablerTest extends ExchangeTestCase {
         // set up on the device.  Otherwise there'll be no difference from
         // testEnableEasCalendarSync.
         if (AccountManager.get(getContext()).getAccountsByType(EAT).length > 0) {
-            Log.w(Logging.LOG_TAG, "testEnableEasCalendarSyncWithNoExchangeAccounts skipped:"
+            LogUtils.w(Logging.LOG_TAG, "testEnableEasCalendarSyncWithNoExchangeAccounts skipped:"
                     + " It only runs when there's no Exchange account on the device.");
             return;
         }
@@ -207,12 +207,11 @@ public class CalendarSyncEnablerTest extends ExchangeTestCase {
     }
 
     protected Account[] getExchangeAccounts() {
-        return AccountManager.get(getContext()).getAccountsByType(
-                AccountManagerTypes.TYPE_EXCHANGE);
+        return AccountManager.get(getContext()).getAccountsByType(EAT);
     }
 
     protected Account makeAccountManagerAccount(String username) {
-        return new Account(username, AccountManagerTypes.TYPE_EXCHANGE);
+        return new Account(username, EAT);
     }
 
     protected void createAccountManagerAccount(String username) {

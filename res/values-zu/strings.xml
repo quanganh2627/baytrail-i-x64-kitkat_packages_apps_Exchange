@@ -28,7 +28,7 @@
     <string name="meeting_allday" msgid="6696389765484663513">"Nini: <xliff:g id="EVENTDATE">%s</xliff:g> (usuku lonke)"</string>
     <string name="meeting_allday_recurring" msgid="2320264182781062684">"Nini: <xliff:g id="EVENTDATE">%s</xliff:g> (usuku lonke, okuqhubekayo)"</string>
     <string name="notification_exchange_calendar_added" msgid="6823659622379350159">"Ukushintsha ikhalenda kufakiwe"</string>
-    <string name="app_name" msgid="5316597712787122829">"Amasevisi Okushintshelana"</string>
+    <string name="app_name" msgid="5316597712787122829">"Amasevisi we-Exchange"</string>
     <string name="exception_cancel" msgid="6160117429428313805">"Lesi senzakalo sikhanselwe i-<xliff:g id="DATE">%s</xliff:g>"</string>
     <string name="exception_updated" msgid="3397583105901142050">"Imininingwane yalesenzakalo ishintshelwe:<xliff:g id="DATE">%s</xliff:g>"</string>
     <string name="policy_dont_allow_storage_cards" msgid="2765447013574188473">"ungavumeli amakhadi okulonda"</string>
@@ -60,4 +60,6 @@
     <string name="account_setup_options_mail_window_2weeks" msgid="4567049268124213035">"Amaviki amabili"</string>
     <string name="account_setup_options_mail_window_1month" msgid="5846359669750047081">"Inyanga eyodwa"</string>
     <string name="account_setup_options_mail_window_all" msgid="5372861827683632364">"Konke"</string>
+    <string name="auth_error_notification_title" msgid="8108639432449021675">"Iphutha lokufakazela ubuqiniso"</string>
+    <string name="auth_error_notification_text" msgid="6813530336397532878">"Thinta ukuze uhlele izilungiselelo ze-akhawunti <xliff:g id="ACCOUNT">%s</xliff:g>"</string>
 </resources>

@@ -34,7 +34,7 @@
     <string name="policy_dont_allow_storage_cards" msgid="2765447013574188473">"不允许使用存储卡"</string>
     <string name="policy_dont_allow_unsigned_apps" msgid="4896164334956001479">"不允许安装未签名的应用"</string>
     <string name="policy_dont_allow_unsigned_installers" msgid="1326544905185523540">"不允许通过未签名的安装程序来安装应用"</string>
-    <string name="policy_dont_allow_wifi" msgid="3109487776704143995">"不允许使用 Wi-Fi"</string>
+    <string name="policy_dont_allow_wifi" msgid="3109487776704143995">"不允许使用 WLAN"</string>
     <string name="policy_dont_allow_text_messaging" msgid="7846141657345860427">"不允许使用短信功能"</string>
     <string name="policy_dont_allow_pop_imap" msgid="4702932192358698651">"不允许使用 POP3 或 IMAP 帐户"</string>
     <string name="policy_dont_allow_irda" msgid="1848561629495912430">"不允许红外通信"</string>
@@ -60,4 +60,6 @@
     <string name="account_setup_options_mail_window_2weeks" msgid="4567049268124213035">"两周"</string>
     <string name="account_setup_options_mail_window_1month" msgid="5846359669750047081">"一个月"</string>
     <string name="account_setup_options_mail_window_all" msgid="5372861827683632364">"全部"</string>
+    <string name="auth_error_notification_title" msgid="8108639432449021675">"身份验证出错"</string>
+    <string name="auth_error_notification_text" msgid="6813530336397532878">"触摸即可修改“<xliff:g id="ACCOUNT">%s</xliff:g>”的帐户设置"</string>
 </resources>

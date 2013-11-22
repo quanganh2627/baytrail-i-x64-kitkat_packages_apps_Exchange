@@ -34,7 +34,7 @@
     <string name="policy_dont_allow_storage_cards" msgid="2765447013574188473">"Забраняване на карти за съхранение"</string>
     <string name="policy_dont_allow_unsigned_apps" msgid="4896164334956001479">"Без неподписани приложения"</string>
     <string name="policy_dont_allow_unsigned_installers" msgid="1326544905185523540">"Без неподп. инсталатори на приложения"</string>
-    <string name="policy_dont_allow_wifi" msgid="3109487776704143995">"Без разрешаване на WiFi"</string>
+    <string name="policy_dont_allow_wifi" msgid="3109487776704143995">"Без разрешаване на Wi-Fi"</string>
     <string name="policy_dont_allow_text_messaging" msgid="7846141657345860427">"Забраняване на текстови съобщения"</string>
     <string name="policy_dont_allow_pop_imap" msgid="4702932192358698651">"Забраняване на POP3 или IMAP профили"</string>
     <string name="policy_dont_allow_irda" msgid="1848561629495912430">"Забраняване на инфрачервени комуникации"</string>
@@ -60,4 +60,6 @@
     <string name="account_setup_options_mail_window_2weeks" msgid="4567049268124213035">"Две седмици"</string>
     <string name="account_setup_options_mail_window_1month" msgid="5846359669750047081">"Един месец"</string>
     <string name="account_setup_options_mail_window_all" msgid="5372861827683632364">"Всички"</string>
+    <string name="auth_error_notification_title" msgid="8108639432449021675">"Грешка при удостоверяването"</string>
+    <string name="auth_error_notification_text" msgid="6813530336397532878">"Докоснете, за да редактирате настройките за профила <xliff:g id="ACCOUNT">%s</xliff:g>"</string>
 </resources>
