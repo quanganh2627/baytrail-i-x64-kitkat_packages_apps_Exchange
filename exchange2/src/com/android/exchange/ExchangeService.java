@@ -240,8 +240,6 @@ public class ExchangeService extends Service implements Runnable {
     private volatile boolean mBackgroundData = true;
     // The most current NetworkInfo (from ConnectivityManager)
     private NetworkInfo mNetworkInfo;
-    // The certificate error flag
-    public static volatile boolean sCertificateError = false;
 
     // Callbacks as set up via setCallback
     private final RemoteCallbackList<IEmailServiceCallback> mCallbackList =
@@ -2278,11 +2276,6 @@ public class ExchangeService extends Service implements Runnable {
         // the sync interval is not "never".  This is the set of mailboxes that we control
         if (mAccountObserver == null) {
             log("mAccountObserver null; service died??");
-            return nextWait;
-        }
-        if (ExchangeService.sCertificateError) {
-            log("certificate error");
-            ExchangeService.sCertificateError = false;
             return nextWait;
         }
 
