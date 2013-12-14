@@ -17,6 +17,7 @@
 package com.android.exchange.eas;
 
 import android.content.Context;
+import android.text.format.DateUtils;
 
 import com.android.emailcommon.provider.HostAuth;
 import com.android.emailcommon.utility.EmailClientConnectionManager;
@@ -29,6 +30,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 
 /**
@@ -46,7 +48,12 @@ import java.util.HashMap;
  */
 public class EasConnectionCache {
 
+    /** The max length of time we want to keep a connection in the cache. */
+    private static final long MAX_LIFETIME = 10 * DateUtils.MINUTE_IN_MILLIS;
+
     private final HashMap<Long, EmailClientConnectionManager> mConnectionMap;
+    /** The creation time of connections in mConnectionMap. */
+    private final HashMap<Long, Long> mConnectionCreationTimes;
 
     private static final ConnPerRoute sConnPerRoute = new ConnPerRoute() {
         @Override
@@ -68,6 +75,7 @@ public class EasConnectionCache {
 
     private EasConnectionCache() {
         mConnectionMap = new HashMap<Long, EmailClientConnectionManager>();
+        mConnectionCreationTimes = new HashMap<Long, Long>();
     }
 
     /**
@@ -77,28 +85,49 @@ public class EasConnectionCache {
      * @return The {@link EmailClientConnectionManager} for hostAuth.
      */
     private EmailClientConnectionManager createConnectionManager(final Context context,
-            final HostAuth hostAuth) {
-        LogUtils.d(Eas.LOG_TAG, "Creating connection for HostAuth %d", hostAuth.mId);
+            final HostAuth hostAuth)
+            throws CertificateException {
+        LogUtils.d(Eas.LOG_TAG, "Creating new connection manager for HostAuth %d", hostAuth.mId);
         final HttpParams params = new BasicHttpParams();
         params.setIntParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, 25);
         params.setParameter(ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE, sConnPerRoute);
-        return EmailClientConnectionManager.newInstance(context, params, hostAuth);
+        final EmailClientConnectionManager mgr =
+                EmailClientConnectionManager.newInstance(context, params, hostAuth);
+
+        mgr.registerClientCert(context, hostAuth);
+
+        return mgr;
     }
 
     /**
      * Get the correct {@link EmailClientConnectionManager} for a {@link HostAuth} from our cache.
      * If it's not in the cache, create and add it.
+     * If the cached connection is old, recreate it.
      * @param context The {@link Context}.
      * @param hostAuth The {@link HostAuth} to which we want to connect.
      * @return The {@link EmailClientConnectionManager} for hostAuth.
      */
     private synchronized EmailClientConnectionManager getCachedConnectionManager(
-            final Context context, final HostAuth hostAuth) {
-        LogUtils.d(Eas.LOG_TAG, "Reusing cached connection for HostAuth %d", hostAuth.mId);
+            final Context context, final HostAuth hostAuth)
+            throws CertificateException {
         EmailClientConnectionManager connectionManager = mConnectionMap.get(hostAuth.mId);
+        final long now = System.currentTimeMillis();
+        if (connectionManager != null) {
+            final long lifetime = now - mConnectionCreationTimes.get(hostAuth.mId);
+            if (lifetime > MAX_LIFETIME) {
+                LogUtils.d(Eas.LOG_TAG, "Aging out connection manager for HostAuth %d",
+                        hostAuth.mId);
+                uncacheConnectionManager(hostAuth);
+                connectionManager = null;
+            }
+        }
         if (connectionManager == null) {
             connectionManager = createConnectionManager(context, hostAuth);
             mConnectionMap.put(hostAuth.mId, connectionManager);
+            mConnectionCreationTimes.put(hostAuth.mId, now);
+        } else {
+            LogUtils.d(Eas.LOG_TAG, "Reusing cached connection manager for HostAuth %d",
+                    hostAuth.mId);
         }
         return connectionManager;
     }
@@ -111,7 +140,8 @@ public class EasConnectionCache {
      * @return The {@link EmailClientConnectionManager} for hostAuth.
      */
     public EmailClientConnectionManager getConnectionManager(
-            final Context context, final HostAuth hostAuth) {
+            final Context context, final HostAuth hostAuth)
+            throws CertificateException {
         final EmailClientConnectionManager connectionManager;
         // We only cache the connection manager for persisted HostAuth objects, i.e. objects
         // whose ids are permanent and won't get reused by other transient HostAuth objects.
@@ -130,7 +160,12 @@ public class EasConnectionCache {
      * @param hostAuth The {@link HostAuth} whose connection manager should be deleted.
      */
     public synchronized void uncacheConnectionManager(final HostAuth hostAuth) {
-        LogUtils.d(Eas.LOG_TAG, "Uncaching connection for HostAuth %d", hostAuth.mId);
+        LogUtils.d(Eas.LOG_TAG, "Uncaching connection manager for HostAuth %d", hostAuth.mId);
+        EmailClientConnectionManager connectionManager = mConnectionMap.get(hostAuth.mId);
+        if (connectionManager != null) {
+            connectionManager.shutdown();
+        }
         mConnectionMap.remove(hostAuth.mId);
+        mConnectionCreationTimes.remove(hostAuth.mId);
     }
 }

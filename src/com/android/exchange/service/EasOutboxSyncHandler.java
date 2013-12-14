@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.TrafficStats;
 import android.net.Uri;
 import android.text.format.DateUtils;
+import android.util.Log;
 
 import com.android.emailcommon.TrafficFlags;
 import com.android.emailcommon.internet.Rfc822Output;
@@ -26,6 +27,7 @@ import com.android.exchange.adapter.Parser;
 import com.android.exchange.adapter.Parser.EmptyStreamException;
 import com.android.exchange.adapter.Serializer;
 import com.android.exchange.adapter.Tags;
+import com.android.mail.utils.LogUtils;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -39,6 +41,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 
 /**
@@ -447,6 +450,8 @@ public class EasOutboxSyncHandler extends EasServerConnection {
                     resp = sendHttpClientPost(cmd, entity, SEND_MAIL_TIMEOUT);
                 } catch (final IOException e) {
                     return false; // TODO: Handle SyncStatus.FAILURE_IO;
+                } catch (final CertificateException e) {
+                    return false;
                 }
 
             } finally {
@@ -496,9 +501,16 @@ public class EasOutboxSyncHandler extends EasServerConnection {
                 return sendOneMessage(message, null);
             } else {
                 if (resp.isAuthError()) {
+                    LogUtils.d(LogUtils.TAG, "Got auth error from server during outbox sync");
                     return false; // TODO: Handle SyncStatus.FAILURE_LOGIN;
                 } else if (resp.isProvisionError()) {
+                    LogUtils.d(LogUtils.TAG, "Got provision error from server during outbox sync.");
                     return false; // TODO: Handle SyncStatus.FAILURE_SECURITY;
+                } else {
+                    // TODO: Handle some other error
+                    LogUtils.d(LogUtils.TAG,
+                            "Got other HTTP error from server during outbox sync: %d", code);
+                    return false;
                 }
             }
         } finally {
@@ -525,6 +537,7 @@ public class EasOutboxSyncHandler extends EasServerConnection {
         try {
             fileStream = new FileOutputStream(tmpFile);
         } catch (final FileNotFoundException e) {
+            Log.e(LogUtils.TAG, "Failed to create message file", e);
             return false;
         }
         try {
@@ -533,15 +546,16 @@ public class EasOutboxSyncHandler extends EasServerConnection {
                     smartSend ? smartSendInfo.mRequiredAtts : null;
             Rfc822Output.writeTo(mContext, message, fileStream, smartSend, true, attachments);
         } catch (final Exception e) {
-            // TODO: Handle file write errors.
+            Log.e(LogUtils.TAG, "Failed to write message file", e);
+            return false;
         } finally {
             try {
                 fileStream.close();
             } catch (final IOException e) {
-                // TODO: Should we do anything here, or is it ok to just proceed?
+                // should not happen
+                Log.e(LogUtils.TAG, "Failed to close file - should not happen", e);
             }
         }
-
         return true;
     }
 

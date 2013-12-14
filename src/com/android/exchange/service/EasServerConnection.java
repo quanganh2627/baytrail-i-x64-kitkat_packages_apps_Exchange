@@ -131,10 +131,9 @@ public class EasServerConnection {
     private HttpClient mClient;
 
     /**
-     * The connection manager for any requests made by this object. This is created lazily, and
-     * cleared whenever our host auth is redirected.
+     * This is used only to check when our client needs to be refreshed.
      */
-    private EmailClientConnectionManager mConnectionManager;
+    private EmailClientConnectionManager mClientConnectionManager;
 
     public EasServerConnection(final Context context, final Account account,
             final HostAuth hostAuth) {
@@ -149,17 +148,19 @@ public class EasServerConnection {
         this(context, account, HostAuth.restoreHostAuthWithId(context, account.mHostAuthKeyRecv));
     }
 
-    protected EmailClientConnectionManager getClientConnectionManager() {
-        if (mConnectionManager == null) {
-            mConnectionManager =
-                    EasConnectionCache.instance().getConnectionManager(mContext, mHostAuth);
+    protected EmailClientConnectionManager getClientConnectionManager()
+        throws CertificateException {
+        final EmailClientConnectionManager connManager =
+                EasConnectionCache.instance().getConnectionManager(mContext, mHostAuth);
+        if (mClientConnectionManager != connManager) {
+            mClientConnectionManager = connManager;
+            mClient = null;
         }
-        return mConnectionManager;
+        return connManager;
     }
 
     public void redirectHostAuth(final String newAddress) {
         mClient = null;
-        mConnectionManager = null;
         mHostAuth.mAddress = newAddress;
         if (mHostAuth.isSaved()) {
             EasConnectionCache.instance().uncacheConnectionManager(mHostAuth);
@@ -169,7 +170,7 @@ public class EasServerConnection {
         }
     }
 
-    private HttpClient getHttpClient(final long timeout) {
+    private HttpClient getHttpClient(final long timeout) throws CertificateException {
         if (mClient == null) {
             final HttpParams params = new BasicHttpParams();
             HttpConnectionParams.setConnectionTimeout(params, (int)(CONNECTION_TIMEOUT));
@@ -256,7 +257,7 @@ public class EasServerConnection {
      * @return The {@link EasResponse} from the Exchange server.
      * @throws IOException
      */
-    protected EasResponse sendHttpClientOptions() throws IOException {
+    protected EasResponse sendHttpClientOptions() throws IOException, CertificateException {
         // For OPTIONS, just use the base string and the single header
         final HttpOptions method = new HttpOptions(URI.create(makeBaseUriString()));
         method.setHeader("Authorization", makeAuthString());
@@ -332,7 +333,7 @@ public class EasServerConnection {
      * @throws IOException
      */
     protected EasResponse sendHttpClientPost(String cmd, final HttpEntity entity,
-            final long timeout) throws IOException {
+            final long timeout) throws IOException, CertificateException {
         final boolean isPingCommand = cmd.equals("Ping");
 
         // Split the mail sending commands
@@ -377,7 +378,7 @@ public class EasServerConnection {
     }
 
     public EasResponse sendHttpClientPost(final String cmd, final byte[] bytes,
-            final long timeout) throws IOException {
+            final long timeout) throws IOException, CertificateException {
         final ByteArrayEntity entity;
         if (bytes == null) {
             entity = null;
@@ -388,7 +389,7 @@ public class EasServerConnection {
     }
 
     protected EasResponse sendHttpClientPost(final String cmd, final byte[] bytes)
-            throws IOException {
+            throws IOException, CertificateException {
         return sendHttpClientPost(cmd, bytes, COMMAND_TIMEOUT);
     }
 
@@ -402,7 +403,8 @@ public class EasServerConnection {
      * @throws IOException
      */
     public EasResponse executeHttpUriRequest(final HttpUriRequest method, final long timeout)
-            throws IOException {
+            throws IOException, CertificateException {
+        LogUtils.d(TAG, "EasServerConnection about to make request %s", method.getRequestLine());
         // The synchronized blocks are here to support the stop() function, specifically to handle
         // when stop() is called first. Notably, they are NOT here in order to guard against
         // concurrent access to this function, which is not supported.
@@ -432,7 +434,8 @@ public class EasServerConnection {
         }
     }
 
-    protected EasResponse executePost(final HttpPost method) throws IOException {
+    protected EasResponse executePost(final HttpPost method)
+            throws IOException, CertificateException {
         return executeHttpUriRequest(method, COMMAND_TIMEOUT);
     }
 
