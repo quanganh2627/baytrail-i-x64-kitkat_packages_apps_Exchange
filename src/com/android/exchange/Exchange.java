@@ -27,12 +27,9 @@ public class Exchange extends Application {
         LogTag.setLogTag(Eas.LOG_TAG);
     }
 
-    public static String mDeviceType;
-
     @Override
     public void onCreate() {
         super.onCreate();
-        mDeviceType = this.getString(R.string.device_type);
         EmailContent.init(this);
         getContentResolver().call(EmailContent.CONTENT_URI, MailboxUtilities.FIX_PARENT_KEYS_METHOD,
                 "", null);

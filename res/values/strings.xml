@@ -204,6 +204,5 @@
 
     <!-- text for notification warning about an authentication error [CHAR LIMIT=60]  -->
     <string name="auth_error_notification_text">Touch to edit account settings for <xliff:g id="account">%s</xliff:g></string>
-    <string name="device_type">Android</string>
 
 </resources>

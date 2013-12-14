@@ -293,10 +293,7 @@ public class EmailSyncAdapterService extends AbstractSyncAdapterService {
             // TODO: if (pingStatus == PingParser.STATUS_FAILED), notify UI.
             // TODO: if (pingStatus == PingParser.STATUS_REQUEST_TOO_MANY_FOLDERS), notify UI.
 
-            // TODO: Should this just re-request ping if status < 0? This would do the wrong thing
-            // for e.g. auth errors, though.
-            if (pingStatus == EasOperation.RESULT_REQUEST_FAILURE ||
-                    pingStatus == EasOperation.RESULT_OTHER_FAILURE) {
+            if (pingStatus == EasOperation.RESULT_REQUEST_FAILURE) {
                 // Request a new ping through the SyncManager. This will do the right thing if the
                 // exception was due to loss of network connectivity, etc. (i.e. it will wait for
                 // network to restore and then request it).
@@ -634,17 +631,12 @@ public class EmailSyncAdapterService extends AbstractSyncAdapterService {
             final int mailboxType = extras.getInt(Mailbox.SYNC_EXTRA_MAILBOX_TYPE,
                     Mailbox.TYPE_NONE);
 
-            // Push only means this sync request should only refresh the ping (either because
-            // settings changed, or we need to restart it for some reason).
-            final boolean pushOnly = Mailbox.isPushOnlyExtras(extras);
-            // Account only means just do a FolderSync.
-            final boolean accountOnly = Mailbox.isAccountOnlyExtras(extras);
-
-            // A "full sync" means that we didn't request a more specific type of sync.
-            final boolean isFullSync = (!pushOnly && !accountOnly && mailboxIds == null &&
-                    mailboxType == Mailbox.TYPE_NONE);
+            // A "full sync" means no specific mailbox or type filter was requested.
+            final boolean isFullSync = (mailboxIds == null && mailboxType == Mailbox.TYPE_NONE);
 
             // A FolderSync is necessary for full sync, initial sync, and account only sync.
+            final boolean accountOnly = Mailbox.isAccountOnlyExtras(extras);
+            final boolean pushOnly = Mailbox.isPushOnlyExtras(extras);
             final boolean isFolderSync = (isFullSync || isInitialSync || accountOnly);
 
             // If we're just twiddling the push, we do the lightweight thing and bail early.
@@ -683,7 +675,7 @@ public class EmailSyncAdapterService extends AbstractSyncAdapterService {
                     syncMailbox(context, cr, acct, account, mailboxId, extras, syncResult, null,
                             true);
                 }
-            } else if (!accountOnly && !pushOnly) {
+            } else if (!accountOnly) {
                 // We have to sync multiple folders.
                 final Cursor c;
                 if (isFullSync) {

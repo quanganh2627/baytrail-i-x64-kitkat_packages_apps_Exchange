@@ -138,7 +138,7 @@ public class EasSyncService extends AbstractSyncService {
     // The EAS protocol Provision status meaning "we partially implement the policies"
     static private final String PROVISION_STATUS_PARTIAL = "2";
 
-    static /*package*/ final String DEVICE_TYPE = Exchange.mDeviceType;
+    static /*package*/ final String DEVICE_TYPE = "Android";
     static final String USER_AGENT = DEVICE_TYPE + '/' + Build.VERSION.RELEASE + '-' +
         Eas.CLIENT_VERSION;
 
